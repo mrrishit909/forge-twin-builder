@@ -1,0 +1,26 @@
+{
+ "note": "headless Chrome with SwiftShader (software GL): FPS is a floor, not a GPU figure",
+ "lod": {
+  "near": 0,
+  "far": 2000
+ },
+ "fps": 14,
+ "frameP95Ms": 62.2,
+ "droppedFrames": 166,
+ "longTasks": 2,
+ "lcpMs": 80,
+ "inpMs": 56,
+ "cls": 0,
+ "contextLost": 0,
+ "sceneLoadMs": 532,
+ "shaderCompileMs": 6,
+ "render": {
+  "calls": 3,
+  "triangles": 24002,
+  "points": 0,
+  "geometries": 5,
+  "textures": 3,
+  "programs": 8
+ },
+ "objects": 2000
+}

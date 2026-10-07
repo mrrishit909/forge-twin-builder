@@ -1,0 +1,277 @@
+{
+ "simulation": {
+  "production": {
+   "supplyLimitedShare": 0,
+   "releaseRatePerH": 72,
+   "sourceBlocked": {
+    "mean": 0.9833045070068345,
+    "lo": 0.9703047721766531,
+    "hi": 0.9963042418370158,
+    "n": 30
+   },
+   "throughputPerH": {
+    "mean": 60.766666666666666,
+    "lo": 59.94748591128182,
+    "hi": 61.585847422051515,
+    "n": 30
+   },
+   "cycleMeanS": {
+    "mean": 447.75248135561174,
+    "lo": 437.0478978561076,
+    "hi": 458.45706485511585,
+    "n": 30
+   },
+   "wipAvg": {
+    "mean": 7.546995135572002,
+    "lo": 7.443596545197406,
+    "hi": 7.650393725946599,
+    "n": 30
+   },
+   "utilization": {
+    "c1": {
+     "mean": 0.06762447850417026,
+     "lo": 0.06671863494210244,
+     "hi": 0.06853032206623809,
+     "n": 30
+    },
+    "m1": {
+     "mean": 0.9836913008825615,
+     "lo": 0.9743347987081067,
+     "hi": 0.9930478030570163,
+     "n": 30
+    },
+    "b1": {
+     "mean": 0,
+     "lo": 0,
+     "hi": 0,
+     "n": 30
+    },
+    "r1": {
+     "mean": 0.33728257122661043,
+     "lo": 0.3328512980189609,
+     "hi": 0.34171384443425995,
+     "n": 30
+    },
+    "m2": {
+     "mean": 0.6731292259410812,
+     "lo": 0.6623216248669678,
+     "hi": 0.6839368270151945,
+     "n": 30
+    },
+    "c2": {
+     "mean": 0.06752683845911389,
+     "lo": 0.06661603498384908,
+     "hi": 0.0684376419343787,
+     "n": 30
+    }
+   },
+   "bottleneck": [
+    {
+     "id": "m1",
+     "share": 1
+    }
+   ],
+   "assumptions": [
+    "8-hour shift after a 1-hour warm-up, 30 replications, common random numbers between branches",
+    "raw material always available, released every interarrivalS seconds on average (exponential)",
+    "machine and robot times lognormal with the asset's mean and coefficient of variation",
+    "machines fail on an exponential MTBF / MTTR clock; a part in work waits out the repair",
+    "blocking after service; parts split round-robin between parallel stations; no operators, changeovers or scrap"
+   ],
+   "runs": 30
+  },
+  "expansion": {
+   "supplyLimitedShare": 0.8666666666666667,
+   "releaseRatePerH": 72,
+   "sourceBlocked": {
+    "mean": 0.0915792181546844,
+    "lo": 0.05494518511394927,
+    "hi": 0.12821325119541951,
+    "n": 30
+   },
+   "throughputPerH": {
+    "mean": 71.67916666666666,
+    "lo": 70.31600782867285,
+    "hi": 73.04232550466047,
+    "n": 30
+   },
+   "cycleMeanS": {
+    "mean": 278.08702192648263,
+    "lo": 256.41169929925894,
+    "hi": 299.7623445537063,
+    "n": 30
+   },
+   "wipAvg": {
+    "mean": 5.5553080277510505,
+    "lo": 5.103699775300261,
+    "hi": 6.00691628020184,
+    "n": 30
+   },
+   "utilization": {
+    "c1": {
+     "mean": 0.07998041835642722,
+     "lo": 0.07846805062258039,
+     "hi": 0.08149278609027405,
+     "n": 30
+    },
+    "m1": {
+     "mean": 0.5939970159789678,
+     "lo": 0.5804067037988899,
+     "hi": 0.6075873281590457,
+     "n": 30
+    },
+    "b1": {
+     "mean": 0,
+     "lo": 0,
+     "hi": 0,
+     "n": 30
+    },
+    "r1": {
+     "mean": 0.3987833852452423,
+     "lo": 0.39117247860544246,
+     "hi": 0.40639429188504217,
+     "n": 30
+    },
+    "m2": {
+     "mean": 0.7900778468317496,
+     "lo": 0.7740805977729132,
+     "hi": 0.8060750958905861,
+     "n": 30
+    },
+    "c2": {
+     "mean": 0.07964835936637939,
+     "lo": 0.07813019902269087,
+     "hi": 0.0811665197100679,
+     "n": 30
+    },
+    "m1b": {
+     "mean": 0.6006550328079696,
+     "lo": 0.5864150749182323,
+     "hi": 0.6148949906977069,
+     "n": 30
+    }
+   },
+   "bottleneck": [
+    {
+     "id": "m2",
+     "share": 1
+    }
+   ],
+   "assumptions": [
+    "8-hour shift after a 1-hour warm-up, 30 replications, common random numbers between branches",
+    "raw material always available, released every interarrivalS seconds on average (exponential)",
+    "machine and robot times lognormal with the asset's mean and coefficient of variation",
+    "machines fail on an exponential MTBF / MTTR clock; a part in work waits out the repair",
+    "blocking after service; parts split round-robin between parallel stations; no operators, changeovers or scrap"
+   ],
+   "runs": 30
+  },
+  "throughputGainPerH": {
+   "mean": 10.9125,
+   "lo": 9.319976892290239,
+   "hi": 12.50502310770976,
+   "n": 30
+  },
+  "significant": true
+ },
+ "bufferSizing": {
+  "rows": [
+   {
+    "capacity": 0,
+    "throughputPerH": 60.2625
+   },
+   {
+    "capacity": 1,
+    "throughputPerH": 60.475
+   },
+   {
+    "capacity": 2,
+    "throughputPerH": 60.8625
+   },
+   {
+    "capacity": 3,
+    "throughputPerH": 60.725
+   },
+   {
+    "capacity": 4,
+    "throughputPerH": 60.6875
+   },
+   {
+    "capacity": 5,
+    "throughputPerH": 60.95
+   },
+   {
+    "capacity": 6,
+    "throughputPerH": 60.9125
+   },
+   {
+    "capacity": 7,
+    "throughputPerH": 60.75
+   },
+   {
+    "capacity": 8,
+    "throughputPerH": 60.7625
+   }
+  ],
+  "chosen": 1,
+  "best": 60.95
+ },
+ "predictiveMaintenance": {
+  "runs": 50,
+  "detected": 50,
+  "missed": 0,
+  "alarmsBeforeFault": 0,
+  "leadMinutes": {
+   "p10": 21.3,
+   "median": 22.3,
+   "p90": 23.4
+  },
+  "healthy8hRuns": 50,
+  "healthyRunsWithAlarm": 0,
+  "note": "the detector and the fault come from the same generator; this checks the code, not real-world accuracy"
+ },
+ "library": {
+  "source": {
+   "props": {
+    "interarrivalS": 50
+   },
+   "costUsd": 0
+  },
+  "conveyor": {
+   "props": {
+    "lengthM": 4,
+    "speedMps": 0.2,
+    "capacity": 5
+   },
+   "costUsd": 18000
+  },
+  "machine": {
+   "props": {
+    "processS": 55,
+    "cv": 0.25,
+    "mtbfH": 2,
+    "mttrMin": 6,
+    "ratedRpm": 3200,
+    "maxTempC": 85
+   },
+   "costUsd": 240000
+  },
+  "robot": {
+   "props": {
+    "cycleS": 20,
+    "cv": 0.1
+   },
+   "costUsd": 95000
+  },
+  "buffer": {
+   "props": {
+    "capacity": 4
+   },
+   "costUsd": 6000
+  },
+  "sink": {
+   "props": {},
+   "costUsd": 0
+  }
+ }
+}

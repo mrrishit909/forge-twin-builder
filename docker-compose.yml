@@ -1,0 +1,93 @@
+# Local stack: `docker compose up --build -d --wait` (or `make dev`). Ports: web 8521, API 8520, Postgres 55520, mail UI 8522,
+# MQTT 18830 (Mosquitto, password auth). The plant simulator publishes telemetry; the API relays it to browsers.
+name: forge-twin-builder
+x-mqtt-env: &mqtt
+  MQTT_URL: mqtt://mqtt:1883
+  MQTT_USER: forge-demo
+  MQTT_PASS: ${FORGE_MQTT_PASS:-demo-only-broker-password}
+services:
+  db:
+    image: postgres:16-alpine
+    environment: { POSTGRES_DB: forge, POSTGRES_USER: forge, POSTGRES_PASSWORD: owner-dev-only }
+    ports: ["127.0.0.1:55520:5432"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U forge -d forge"], interval: 2s, retries: 30 }
+    volumes: [dbdata:/var/lib/postgresql/data]
+
+  mqtt:        # MQTT broker with password auth; the password file is generated from the env at start
+    image: eclipse-mosquitto:2.0.20
+    command: ["sh", "-c", "mosquitto_passwd -b -c /mosquitto/data/passwd forge-demo \"$$MQTT_PASS\" && chown mosquitto:mosquitto /mosquitto/data/passwd && chmod 0700 /mosquitto/data/passwd && exec mosquitto -c /mosquitto/config/mosquitto.conf"]
+    environment: *mqtt
+    volumes: [./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro]
+    ports: ["127.0.0.1:18830:1883"]
+
+  plant:       # telemetry simulator: RPM, temperature, vibration, flow and status for the demo machines
+    build: { context: ., dockerfile: infra/docker/node.Dockerfile }
+    command: ["node", "data/simulators/plant.ts"]
+    environment: *mqtt
+    depends_on: [mqtt]
+
+  generator:   # synthetic data generator: template scene, evaluation, provenance
+    build: { context: ., dockerfile: infra/docker/node.Dockerfile }
+    command: ["node", "data/simulators/generate.ts"]
+    volumes: [fixtures:/app/data/fixtures]
+
+  api:
+    build: { context: ., dockerfile: infra/docker/node.Dockerfile }
+    command: ["node", "apps/api/src/main.ts"]
+    environment:
+      <<: *mqtt
+      MIGRATE_ON_START: "1"
+      OWNER_DATABASE_URL: postgresql://forge:owner-dev-only@db:5432/forge
+      DATABASE_URL: postgresql://forge_app:app-dev-only@db:5432/forge
+      FORGE_SECRET_KEY: ${FORGE_SECRET_KEY:-6f9c1d2e3a4b5c6d7e8f90112233445566778899aabbccddeeff001122334455}
+      CORS_ORIGINS: http://localhost:8521,http://127.0.0.1:8521
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel:4318
+    ports: ["127.0.0.1:8520:8520"]
+    volumes: [fixtures:/app/data/fixtures]
+    depends_on:
+      db: { condition: service_healthy }
+      generator: { condition: service_completed_successfully }
+      mqtt: { condition: service_started }
+      otel: { condition: service_started }
+    healthcheck: { test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8520/healthz"], interval: 3s, retries: 40, start_period: 10s }
+
+  web:         # the same static site as the public sandbox, built against the API
+    build: { context: ., dockerfile: infra/docker/web.Dockerfile, args: { NEXT_PUBLIC_API_URL: "http://localhost:8520" } }
+    ports: ["127.0.0.1:8521:80"]
+    depends_on: { api: { condition: service_healthy } }
+
+  mail:        # local notification sink (kept from the shared stack; FORGE sends nothing to it yet)
+    image: axllent/mailpit:v1.21
+    ports: ["127.0.0.1:8522:8025"]
+
+  otel:        # OpenTelemetry collector: receives API traces over OTLP/HTTP and prints them
+    image: otel/opentelemetry-collector:0.111.0
+    command: ["--config=/etc/otel.yaml"]
+    volumes: [./infra/otel/collector.yaml:/etc/otel.yaml:ro]
+
+  test:        # `docker compose --profile test run --rm test`: unit + API tests against a throwaway Postgres and broker
+    profiles: [test]
+    build: { context: ., dockerfile: infra/docker/node.Dockerfile }
+    command: ["sh", "-c", "node data/simulators/generate.ts && npx vitest run"]
+    environment:
+      <<: *mqtt
+      MQTT_URL: mqtt://testmqtt:1883
+      OWNER_DATABASE_URL: postgresql://forge:owner-dev-only@testdb:5432/forge
+      DATABASE_URL: postgresql://forge_app:app-dev-only@testdb:5432/forge
+    depends_on: { testdb: { condition: service_healthy }, testmqtt: { condition: service_started } }
+
+  testdb:
+    profiles: [test]
+    image: postgres:16-alpine
+    environment: { POSTGRES_DB: forge, POSTGRES_USER: forge, POSTGRES_PASSWORD: owner-dev-only }
+    tmpfs: [/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U forge -d forge"], interval: 2s, retries: 30 }
+
+  testmqtt:
+    profiles: [test]
+    image: eclipse-mosquitto:2.0.20
+    command: ["sh", "-c", "mosquitto_passwd -b -c /mosquitto/data/passwd forge-demo \"$$MQTT_PASS\" && chown mosquitto:mosquitto /mosquitto/data/passwd && chmod 0700 /mosquitto/data/passwd && exec mosquitto -c /mosquitto/config/mosquitto.conf"]
+    environment: *mqtt
+    volumes: [./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro]
+
+volumes: { dbdata: {}, fixtures: {} }

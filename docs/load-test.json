@@ -1,0 +1,8 @@
+{
+ "when": "2026-10-06, MacBook Pro (Apple silicon) shared with other builds; API as one Node 24 process on the host (port 8523), Postgres 16 and Mosquitto in Docker, the plant simulator publishing at 20x; client on the same machine",
+ "command": "RATE_LIMIT=1000000 PORT=8523 node apps/api/src/main.ts & node tests/performance/load.ts http://127.0.0.1:8523 32 10 2000",
+ "reads": { "clients": 32, "seconds": 10, "requests": 19309, "rps": 1931, "p50Ms": 17.1, "p95Ms": 27.7, "p99Ms": 34.3, "errors": 0, "paths": ["GET /v1/projects/{id} (replays every stored op)", "GET /v1/templates/demo", "GET /v1/assets/m1/timeseries", "GET /v1/connectors"] },
+ "simulate": { "clients": 8, "requests": 48, "rps": 5, "p50Ms": 1749.9, "p95Ms": 2026, "errors": 0, "note": "30 simulated 8-hour shifts per request, CPU-bound on one process" },
+ "websocket": { "requested": 2000, "open": 2000, "failed": 0, "openedInMs": 476, "readingsPerSecPerClient": 11.9, "note": "the plant publishes 200 readings a second in one burst; each client's queue keeps the latest per topic, so clients receive about 10-12 a second (backpressure by coalescing, by design)" },
+ "caveat": "same-machine client and server; no cross-host or production-like test was run"
+}

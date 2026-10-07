@@ -1,0 +1,30 @@
+name: ci
+on: { push: { branches: [main] }, pull_request: {} }
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env: { POSTGRES_DB: forge, POSTGRES_USER: forge, POSTGRES_PASSWORD: owner-dev-only }
+        ports: ["55520:5432"]
+        options: --health-cmd "pg_isready -U forge" --health-interval 2s --health-retries 30
+    env: { MQTT_URL: "mqtt://127.0.0.1:18830", MQTT_USER: forge-demo, MQTT_PASS: ci-only-password }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npx tsc -p . && (cd apps/web && npx tsc --noEmit -p .)
+      - name: broker with password auth (the same config as docker compose)
+        run: |
+          docker run -d --name ci-mqtt -p 18831:1883 -e MQTT_PASS=$MQTT_PASS -v $PWD/infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro eclipse-mosquitto:2.0.20 \
+            sh -c 'mosquitto_passwd -b -c /mosquitto/data/passwd forge-demo "$MQTT_PASS" && chown mosquitto:mosquitto /mosquitto/data/passwd && chmod 0700 /mosquitto/data/passwd && exec mosquitto -c /mosquitto/config/mosquitto.conf'
+          echo "MQTT_URL=mqtt://127.0.0.1:18831" >> $GITHUB_ENV
+      - run: node data/simulators/generate.ts
+      - run: npx vitest run --coverage   # fails under 85% line coverage of domain logic
+      - run: npx playwright install --with-deps chrome && npm run build -w @forge/web && npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: playwright, path: test-results }
